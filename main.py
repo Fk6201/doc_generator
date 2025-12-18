@@ -3,26 +3,46 @@ from report_generator import ReportGenerator
 from utils import transform_api_json_to_items
 
 def main():
-    BASE_URL = "https://jsonplaceholder.typicode.com"
-    PATH = "posts"
-    OUTPUT_FILENAME = "sample_report.docx"
-    REPORT_TITLE = "Sample API Report"
+    print("Program started")
+
+    city = input("Enter city name: ").strip().title()
+    print("City entered:", city)
+
+    BASE_URL = "https://wttr.in"
+    PATH = city
+    PARAMS = {"format": "j1"}
+
+    OUTPUT_FILENAME = "weather_report.docx"
+    REPORT_TITLE = f"Live Weather Report - {city}"
 
     client = APIClient(BASE_URL)
+
     try:
-        raw = client.get(PATH)
+        print("Fetching weather data...")
+        raw = client.get(PATH, params=PARAMS)
+        print("API data received")
     except Exception as e:
-        print("[ERROR] Failed to fetch API data:", e)
+        print("❌ API ERROR:", e)
         return
 
-    items = transform_api_json_to_items(raw, limit=10)
-    if not items:
-        print("No items found in API response.")
+    try:
+        items = transform_api_json_to_items(raw, city)
+        print("Data transformed")
+    except Exception as e:
+        print("❌ DATA ERROR:", e)
         return
 
-    generator = ReportGenerator()
-    out_path = generator.generate(filename=OUTPUT_FILENAME, title=REPORT_TITLE, items=items)
-    print("Report saved to:", out_path)
+    try:
+        generator = ReportGenerator()
+        out_path = generator.generate(
+            filename=OUTPUT_FILENAME,
+            title=REPORT_TITLE,
+            items=items
+        )
+        print("✅ Weather report created successfully!")
+        print("📄 File location:", out_path)
+    except Exception as e:
+        print("❌ FILE ERROR:", e)
 
 if __name__ == "__main__":
     main()
